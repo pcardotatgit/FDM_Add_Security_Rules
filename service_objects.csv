@@ -1,0 +1,9 @@
+NEW_TCP-12188;object;tcp;12188;no description
+NEW_TCP-19083;object;tcp;19083;no description
+NEW_TCP-20000-20005;object;tcp;20000-20005;no description
+NEW_TCP-20200-20205;object;tcp;20200-20205;no description
+NEW_UDP-1024-65535;object;udp;1024-65535;no description
+NEW_UDP-69;object;udp;69;no description
+NEW_UDP-1514;object;udp;1514;no description
+NEW_UDP-2052;object;udp;2052;no description
+NEW_UDP-1001;object;udp;1001;no description

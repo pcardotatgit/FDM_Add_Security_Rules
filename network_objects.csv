@@ -1,0 +1,12 @@
+NEW_HOST-100.38.56.12;host;100.38.56.12;small description;
+NEW_HOST-PATRICK_LAPTOP;host;172.15.118.26;small description;
+NEW_HOST-WEB_SERVER;host;172.215.18.167;small description;
+NEW_NET-200.100.176.0-21;subnet;200.100.176.0 255.255.248.0;small description;
+NEW_HOST-CORP_LAPTOP;host;172.40.166.228;small description;
+NEW_HOST-172.169.113.44-32;host;172.169.113.44;small description;
+NEW_HOST-174.122.147.17-32;host;174.122.147.17;small description;
+NEW_HOST-174.122.145.18-32;host;174.122.145.18; description;
+NEW_HOST-174.199.27.142-32;host;174.199.27.142;no description;
+NEW_HOST-10.110.123.9-32;host;10.110.123.9;no description;
+NEW_HOST-10.37.1.9-32;host;10.37.1.9;no description;
+NEW_Patrick_test_fqdn;fqdn;www.patrick.com;small test
