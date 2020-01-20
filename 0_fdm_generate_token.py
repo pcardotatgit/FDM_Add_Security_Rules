@@ -1,13 +1,31 @@
 #!/usr/bin/env python
-# June 2019 - pcardot - proof of concept - How to create objects and rules from CSV file into FDM Managed Devices
+# -*- coding: utf-8 -*-
 '''
-Edit profile_ftd.yml file and save your FTD device's IP address , admin user name and password
+Copyright (c) 2019 Cisco and/or its affiliates.
 
-This script connects to your device. Negociate a token, save it to the token.txt for it to be used 
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
 
-Retrieves the device's hostname and displays it.  This confirm that the connexion succeeded
+               https://developer.cisco.com/docs/licenses
 
-pcardot
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+
+This script connects to your device. Negociate a token, save it to the token.txt file .
+The token.txt file will be read by all other scripts in order to get the token value. 
+The token is valid 30 minutes. 
+This script must be runt in order to get a 30 minutes valid token
+
+As a check this script Retrieves the device's hostname and displays it.  This confirm that the 
+connexion to the FDM device succeeded
+
+First Edit the profile_ftd.yml file and save your FTD device's IP address , admin user name and password
+
 '''
 import requests
 import yaml
