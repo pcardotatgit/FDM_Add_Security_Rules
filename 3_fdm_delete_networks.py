@@ -24,12 +24,10 @@ import requests
 import json
 import yaml
 import csv
+import time
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -60,7 +58,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def delete_network_from_csv(host,token,file):
+def delete_network_from_csv(host,token,file,version):
 	'''
 	Delete every network object from the csv file
 	'''
@@ -76,10 +74,15 @@ def delete_network_from_csv(host,token,file):
 			#print ( ' print only some columuns in the rows  : '+row[1]+ ' -> ' + row[2] )	
 			print(row[0]+' : '+row[5])
 			try:
-				request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)				
-				print("Network removed")
+				if row[4]=='networkobjectgroup':
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/networkgroups/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)			
+					print("Network Object Group Deleted")
+				else:
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)			
+					print("Network Object Deleted")
 			except:
-				raise			
+				raise
+			time.sleep(0.5)
 	return (1)		
 
 
@@ -93,6 +96,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -105,7 +109,7 @@ if __name__ == "__main__":
 	api_url="/object/networks"
 	file="network_objects.txt"
 	print("OBJECTS TO DELETE :")
-	delete_network_from_csv(FDM_HOST,token,file)
+	delete_network_from_csv(FDM_HOST,token,file,FDM_VERSION )
 	#print(json.dumps(networks,indent=4,sort_keys=True))
 		   
 	

@@ -29,8 +29,6 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -38,7 +36,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -62,7 +60,7 @@ def fdm_login(host,username,password):
 		raise
 
 	   
-def fdm_create_access_policy(host,token,payload,parent_id):
+def fdm_create_access_policy(host,token,payload,parent_id,version):
 	'''
 	This is a POST request to create a new access list.
 	'''
@@ -79,7 +77,7 @@ def fdm_create_access_policy(host,token,payload,parent_id):
 		raise
 		
 	
-def fdm_get(host,token,url):
+def fdm_get(host,token,url,version):
 	'''
 	generic GET request which call the url API and return the json result
 	'''
@@ -150,7 +148,6 @@ def read_csv(file,networks:dict,tcpports:dict,udpports:dict):
 	return (donnees)
 	
 if __name__ == "__main__":
-
 	#  load FMC IP & credentials here
 	ftd_host = {}
 	ftd_host = yaml_load("profile_ftd.yml")	
@@ -161,6 +158,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -171,7 +169,7 @@ if __name__ == "__main__":
 	print('======================================================================================================================================')   
 	# STEP 1  Get the Policy ID , we need it as the parent ID for accessrules management	
 	api_url="/policy/accesspolicies"
-	accesspolicy = fdm_get(FDM_HOST,token,api_url)
+	accesspolicy = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#print(json.dumps(accesspolicy,indent=4,sort_keys=True))
 	data=accesspolicy['items']
 	for entry in data:
@@ -181,12 +179,12 @@ if __name__ == "__main__":
 	print()
 	#STEP 2 get all network objects IDs and put them in a dictionnary
 	api_url="/object/networks"
-	network_objects_dict = fdm_get(FDM_HOST,token,api_url)
+	network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#STEP 3 get all service objects IDs and put them into 2 dictionnaries one for tcp and the other for udp
 	api_url="/object/tcpports"
-	TCP_network_objects_dict = fdm_get(FDM_HOST,token,api_url)
+	TCP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	api_url="/object/udpports"
-	UDP_network_objects_dict = fdm_get(FDM_HOST,token,api_url)
+	UDP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#STEP 4 read small_access_list.csv csv file
 	list=[]
 	list=read_csv("small_access_list.csv",network_objects_dict,TCP_network_objects_dict,UDP_network_objects_dict)	
@@ -195,7 +193,7 @@ if __name__ == "__main__":
 		print(objet) 
 		print() 
 		#Add access Policy
-		post_response = fdm_create_access_policy(FDM_HOST,token,objet,PARENT_ID)
+		post_response = fdm_create_access_policy(FDM_HOST,token,objet,PARENT_ID,FDM_VERSION)
 		print(json.dumps(post_response,indent=4,sort_keys=True))
 		print('')	
 		

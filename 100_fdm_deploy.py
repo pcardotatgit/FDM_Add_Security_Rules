@@ -26,8 +26,6 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -35,7 +33,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -58,7 +56,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def deploy(host,token):
+def deploy(host,token,version):
 	'''
 	This is a POST request to create a new network object in FDM.
 	'''
@@ -74,7 +72,6 @@ def deploy(host,token):
 	except:
 		raise
 
-
 if __name__ == "__main__":
 	#  load FMC IP & credentials here
 	ftd_host = {}
@@ -85,6 +82,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -94,6 +92,5 @@ if __name__ == "__main__":
 	print (" TOKEN :")
 	print(token)
 	print('======================================================================================================================================')	 
-
 	print("DEPLOYEMENT")
-	deploy(FDM_HOST,token)
+	deploy(FDM_HOST,token,FDM_VERSION)

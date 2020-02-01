@@ -8,6 +8,8 @@ These scripts allow you to :
 
 profile_ftd.yml : define FTD device IP address and username / password needed to connect to it. This file will be loaded by all other scripts
 
+version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5
+
 0_ : Test connection to FTD and Generate an Authentication Token
 
 1_ : Add new network objects to FTD Device from network_objects.csv file

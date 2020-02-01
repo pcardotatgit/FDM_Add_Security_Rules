@@ -28,8 +28,6 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -37,7 +35,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -60,7 +58,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 		
-def fdm_get(host,token,url):
+def fdm_get(host,token,url,version):
 	'''
 	This is a GET request take url, send it to device and return json result.
 	'''
@@ -75,20 +73,20 @@ def fdm_get(host,token,url):
 	except:
 		raise
 		
-def get_port_types(token):
+def get_port_types(token,version):
 	'''
 		retrieve all port types
 	'''
 
 	try:
 		api_url="/object/tcpports"
-		ports = fdm_get(FDM_HOST,token,api_url)
+		ports = fdm_get(FDM_HOST,token,api_url,version)
 		#print(json.dumps(ports,indent=4,sort_keys=True))
 		port_list={}
 		for line in ports['items']:
 			port_list.update({line['name']:line['type']})
 		api_url="/object/udpports"
-		ports = fdm_get(FDM_HOST,token,api_url)
+		ports = fdm_get(FDM_HOST,token,api_url,version)
 		#print(json.dumps(ports,indent=4,sort_keys=True))
 		for line in ports['items']:
 			port_list.update({line['name']:line['type']})
@@ -96,7 +94,7 @@ def get_port_types(token):
 	except:
 		raise	
 
-def fdm_create_port_group(host,token,payload):
+def fdm_create_port_group(host,token,payload,version):
 	'''
 	This is a POST request to create a new network object in FDM.
 	'''
@@ -111,24 +109,13 @@ def fdm_create_port_group(host,token,payload):
 		return request.json()
 	except:
 		raise
-def convert_mask(ip):
-	'''
-	convert all mask formated  x.x.x.x  into  /x  ( ex: 255.255.255.0  => /24 )
-	'''
-	ip=ip.strip()
-	liste=[]
-	liste=ip.split(" ")
-	address=liste[0]
-	netmask=liste[1]
-	newmask=sum(bin(int(x)).count('1') for x in netmask.split('.'))
-	new_adress=address+'/'+str(newmask)
-	return(new_adress)
+
 	
-def read_csv(file,token):
+def read_csv(file,token,version):
 	'''
 	read csv file and generate  JSON Data to send to FTD device
 	'''
-	types=get_port_types(token)
+	types=get_port_types(token,version)
 	donnees=[]
 	with open (file) as csvfile:
 		entries = csv.reader(csvfile, delimiter=';')
@@ -166,11 +153,12 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	fa = open("token.txt", "r")
 	token = fa.readline()
 	fa.close()	
 	list=[]
-	list=read_csv("port_object_groups.csv",token)
+	list=read_csv("port_object_groups.csv",token,FDM_VERSION)
 
 	#print('TOKEN = ')
 	#print(token)
@@ -178,6 +166,6 @@ if __name__ == "__main__":
 	for objet in list:
 		print("Adding new Port Object Group")
 		print(objet)				
-		post_response = fdm_create_port_group(FDM_HOST,token,objet)
+		post_response = fdm_create_port_group(FDM_HOST,token,objet,FDM_VERSION)
 		print(json.dumps(post_response,indent=4,sort_keys=True))
 		print('')	

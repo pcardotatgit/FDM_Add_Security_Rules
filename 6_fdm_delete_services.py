@@ -26,9 +26,8 @@ import csv
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import time
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -36,7 +35,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -59,7 +58,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def delete_service_from_csv(host,token,file):
+def delete_service_from_csv(host,token,file,version):
 	'''
 	Delete every service object from the csv file
 	'''
@@ -75,12 +74,18 @@ def delete_service_from_csv(host,token,file):
 			#print ( ' print only some columuns in the rows  : '+row[1]+ ' -> ' + row[2] )	
 			print(row[0]+' : '+row[4])
 			try:
-				if row[0].find('NEW_')==0:
-					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)  
-					request = requests.delete("https://{}:{}/api/fdm/v2/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   					
-					print("Service removed")
+				if row[0].find('EW_TCP')==0:
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)  							
+					print("Single TCP Service Deleted")
+				elif row[0].find('EW_UDP')==0:
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
+					print("Single UDP Service Deleted")
+				elif row[0].find('EW_TEST')==0:
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
+					print("Port Group Deleted")					
 			except:
-				raise			
+				raise	
+			time.sleep(0.5)
 	return (1)		
 
 
@@ -94,6 +99,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -105,4 +111,4 @@ if __name__ == "__main__":
 	print('======================================================================================================================================')	 
 	file="service_objects.txt"
 	print("OBJECTS TO DELETE :")
-	delete_service_from_csv(FDM_HOST,token,file)
+	delete_service_from_csv(FDM_HOST,token,file,FDM_VERSION)

@@ -27,16 +27,13 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
-
 def yaml_load(filename):
 	fh = open(filename, "r")
 	yamlrawtext = fh.read()
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -59,7 +56,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def fdm_get(host,token,url):
+def fdm_get(host,token,url,version):
 	'''
 	This is a GET request to obtain the list of all Network Objects in the system.
 	'''
@@ -84,6 +81,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -94,8 +92,41 @@ if __name__ == "__main__":
 	print(token)
 	print('======================================================================================================================================')	
 	fa = open("network_objects.txt","w")   
+	# List Network Object Groups First
+	api_url="/object/networkgroups"
+	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	print(json.dumps(networks,indent=4,sort_keys=True))
+	for line in networks['items']:
+		print('name:', line['name'])
+		print('Type:', line['type'])
+		print('value:')
+		for line2 in line['objects']:		
+			print('==',line2['name'])
+		print('description:', line['description'])
+		print('type:', line['type'])
+		print('id:', line['id'])
+		print()
+		if ("utsideIPv4" not in line['name']) and ("ny-ipv" not in line['name']):
+			fa.write(line['name'])
+			fa.write(';')
+			fa.write(line['type'])
+			fa.write(';')	
+			for line2 in line['objects']:				
+				fa.write(line2['name'])
+				fa.write(',')
+			fa.write(';')   
+			if line['description']==None:
+				line['description']="No Description"
+			fa.write(line['description'])
+			fa.write(';')			
+			fa.write(line['type'])
+			fa.write(';')
+			fa.write(line['id'])
+			fa.write('\n')	
+	
+	# And then List Network Objects
 	api_url="/object/networks"
-	networks = fdm_get(FDM_HOST,token,api_url)
+	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#print(json.dumps(networks,indent=4,sort_keys=True))
 	for line in networks['items']:
 		print('name:', line['name'])

@@ -34,8 +34,6 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 	
 def yaml_load(filename):
 	'''
@@ -46,7 +44,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -94,8 +92,8 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
-	token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD)
-	api_version=3
+	FDM_VERSION = ftd_host["devices"][0]['version']
+	token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD,FDM_VERSION)
 	'''
 	save token into token.txt file
 	'''
@@ -111,7 +109,7 @@ if __name__ == "__main__":
 	print() 	
 	print ('==========================================================================================')
 	print()
-	hostname = fdm_get_hostname(FDM_HOST,token,api_version)
+	hostname = fdm_get_hostname(FDM_HOST,token,FDM_VERSION)
 	print ('JSON HOSTNAME IS =')
 	print(json.dumps(hostname,indent=4,sort_keys=True))	
 	print()

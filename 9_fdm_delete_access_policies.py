@@ -28,16 +28,13 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
-
 def yaml_load(filename):
 	fh = open(filename, "r")
 	yamlrawtext = fh.read()
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -60,7 +57,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def delete_access_policy_from_csv(host,token,file,parent_id):
+def delete_access_policy_from_csv(host,token,file,parent_id,version):
 	'''
 	Delete every service object from the csv file
 	'''
@@ -83,7 +80,7 @@ def delete_access_policy_from_csv(host,token,file,parent_id):
 				raise			
 	return (1)	
 	
-def fdm_get(host,token,url):
+def fdm_get(host,token,url,version):
 	'''
 	generic GET request.
 	'''
@@ -109,6 +106,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -120,7 +118,7 @@ if __name__ == "__main__":
 	print('======================================================================================================================================')	 
 	# STEP 1  Get the Policy ID , we need it as the parent ID for accessrules management	
 	api_url="/policy/accesspolicies"
-	accesspolicy = fdm_get(FDM_HOST,token,api_url)
+	accesspolicy = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#print(json.dumps(accesspolicy,indent=4,sort_keys=True))
 	data=accesspolicy['items']
 	for entry in data:
@@ -130,4 +128,4 @@ if __name__ == "__main__":
 	
 	file="access_policies.txt"
 	print("OBJECTS TO DELETE :")
-	delete_access_policy_from_csv(FDM_HOST,token,file,PARENT_ID)
+	delete_access_policy_from_csv(FDM_HOST,token,file,PARENT_ID,FDM_VERSION)

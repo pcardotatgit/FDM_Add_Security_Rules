@@ -29,8 +29,6 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -38,7 +36,7 @@ def yaml_load(filename):
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -62,7 +60,7 @@ def fdm_login(host,username,password):
 		raise
 
 
-def fdm_create_network(host,token,payload):
+def fdm_create_network(host,token,payload,version):
 	'''
 	This is a POST request to create a new network object in FDM.
 	'''
@@ -150,6 +148,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	list=[]
 	list=read_csv("network_objects.csv")
 	fa = open("token.txt", "r")
@@ -161,6 +160,6 @@ if __name__ == "__main__":
 	print('======================================================================================================================================')	
 	for objet in list:
 		print(objet)				
-		post_response = fdm_create_network(FDM_HOST,token,objet)
+		post_response = fdm_create_network(FDM_HOST,token,objet,FDM_VERSION)
 		print(json.dumps(post_response,indent=4,sort_keys=True))
 		print('')	

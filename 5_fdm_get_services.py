@@ -27,16 +27,13 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-#version=2 # 2 :  for FTD 6.3
-version=3 # 3 : for FTD 6.4 
-
 def yaml_load(filename):
 	fh = open(filename, "r")
 	yamlrawtext = fh.read()
 	yamldata = yaml.load(yamlrawtext)
 	return yamldata
 	
-def fdm_login(host,username,password):
+def fdm_login(host,username,password,version):
 	'''
 	This is the normal login which will give you a ~30 minute session with no refresh.  
 	Should be fine for short lived work.  
@@ -59,7 +56,7 @@ def fdm_login(host,username,password):
 	except:
 		raise
 
-def fdm_get(host,token,url):
+def fdm_get(host,token,url,version):
 	'''
 	This is a GET request take url, send it to device and return json result.
 	'''
@@ -84,6 +81,7 @@ if __name__ == "__main__":
 	FDM_PASSWORD = ftd_host["devices"][0]['password']
 	FDM_HOST = ftd_host["devices"][0]['ipaddr']
 	FDM_PORT = ftd_host["devices"][0]['port']
+	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
 	fa = open("token.txt", "r")
 	token = fa.readline()
@@ -93,10 +91,39 @@ if __name__ == "__main__":
 	print (" TOKEN :")
 	print(token)
 	print('======================================================================================================================================')	
-	fa = open("service_objects.txt","w")   
+	fa = open("service_objects.txt","w") 	
+	# get Port Object Groups
+	api_url="/object/portgroups"
+	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	print(json.dumps(networks,indent=4,sort_keys=True))
+	for line in networks['items']:
+		print('name:', line['name'])
+		for line2 in line['objects']:			
+			print('==> name:', line2['name'])
+		print('description:', line['description'])
+		print('type:', line['type'])
+		print('id:', line['id'])
+		print()
+		#filter only object named  NEW_TCPxxxx 
+		if line['name'].find("GROUP")!=0:
+			fa.write(line['name'])
+			fa.write(';')
+			for line2 in line['objects']:
+				fa.write(line2['name'])
+				fa.write(',')
+			fa.write(';')   
+			if line['description']==None:
+				line['description']="No Description"
+			fa.write(line['description'])
+			fa.write(';')			
+			fa.write(line['type'])
+			fa.write(';')
+			fa.write(line['id'])
+			fa.write('\n')		
+	# get Single TCP Port Objects
 	api_url="/object/tcpports"
-	networks = fdm_get(FDM_HOST,token,api_url)
-	#print(json.dumps(networks,indent=4,sort_keys=True))
+	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	print(json.dumps(networks,indent=4,sort_keys=True))
 	for line in networks['items']:
 		print('name:', line['name'])
 		print('value:', line['port'])
@@ -105,7 +132,7 @@ if __name__ == "__main__":
 		print('id:', line['id'])
 		print()
 		#filter only object named  NEW_TCPxxxx 
-		if line['name'].find("EW_TCP")==0:
+		if line['name'].find("NEW_TCP")==0:
 			fa.write(line['name'])
 			fa.write(';')			
 			fa.write(line['port'])
@@ -118,8 +145,9 @@ if __name__ == "__main__":
 			fa.write(';')
 			fa.write(line['id'])
 			fa.write('\n')
+	# get Single UDP Port Objects		
 	api_url="/object/udpports"
-	networks = fdm_get(FDM_HOST,token,api_url)
+	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
 	#print(json.dumps(networks,indent=4,sort_keys=True))
 	for line in networks['items']:
 		print('name:', line['name'])
@@ -141,7 +169,7 @@ if __name__ == "__main__":
 			fa.write(line['type'])
 			fa.write(';')
 			fa.write(line['id'])
-			fa.write('\n')			
+			fa.write('\n')					
 	fa.close()			
 	
 	
