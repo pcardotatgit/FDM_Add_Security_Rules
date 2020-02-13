@@ -19,9 +19,9 @@ version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5
 - <b>3_fdm_delete_networks.py</b> : Delete all previously created network objects
 - <b>4_fdm_add_service_objects.py</b> : Add new service objects to FTD Device from service_objects.csv file
 - <b>4b_fdm_add_service_object_group</b>: Add new service objects to FTD Device from <b>port_object_groups.csv</b> file
-- <b>5_fdm_get_services.py</b :  and save into a texte file all previously created service objects
+- <b>5_fdm_get_services.py</b> :  and save into a texte file all previously created service objects
 - <b>6_fdm_delete_services.py</b>: Delete all previously created service objects
-- <b>7_fdm_add_access_policy.py</b>: Add new Access Policies to FTD device from small_access_list.csv file
+- <b>7_fdm_add_access_policy.py</b>: Add new Access Policies to FTD device from <b>small_access_list.csv</b> file
 - <b>8_fdm_get_access_policy.py</b>: Display and save into the access_policies.txt file all previously created Access Policies
 - <b>9_fdm_delete_access_policies.py</b>: Delete all access Policies from the access_policies.txt file
 - <b>100_fdm_deploy.py</b>: Deploy last changes to FTD device
