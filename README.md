@@ -1,14 +1,14 @@
 # Add Security Rules into FirePOWER FDM Managed Device
 
-## Quick start for creating objects and Security Rule into FDM
+## Quick start for creating objects and Security Rules into FDM
 
-The goal of this project it to give some ready to use scripts for basic interactions with FDM managed FTD device for for any version starting from 6.3.
+The goal of this project it to give some ready to use scripts for basic interactions with FDM managed FTD devices for any version starting from 6.3.
 
 Objects and rules are ingested into the device from flat csv files.
 
 These scripts allow you to :
 
-- profile_ftd.yml : define FTD device IP address and username / password needed to connect to it. This file will be loaded by all other scripts
+- <b>profile_ftd.yml</b> : define FTD device IP address and username / password needed to connect to it. This file will be loaded by all other scripts
 
 version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5
 
