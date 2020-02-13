@@ -2,7 +2,9 @@
 
 ## Quick start for creating objects and Security Rule into FDM
 
-The goal of this project it to give some ready to use scripts for basic interactions with FDM managed FTD device for for any version from 6.3
+The goal of this project it to give some ready to use scripts for basic interactions with FDM managed FTD device for for any version starting from 6.3.
+
+Objects and rules are ingested into the device from flat csv files.
 
 These scripts allow you to :
 
