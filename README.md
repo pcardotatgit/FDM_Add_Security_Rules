@@ -14,27 +14,27 @@ Installing these script is pretty straight forward . You can just copy / and pas
 
 	For Linux/Mac 
 
-	<b>python3 -m venv venv</b>
-	<b<source bin activate</b>
+	python3 -m venv venv
+	source bin activate
 
 	For Windows 
 
-	<b>virtualenv env </b>
-	<b>\env\Scripts\activate.bat </b>
+	virtualenv env 
+	\env\Scripts\activate.bat 
 
 ### git clone the scripts
 
-	<b>git clone https://github.com/pcardotatgit/FDM_Add_Security_Rules.git</b>
-	<b>cd FDM_Add_Security_Rules/</b>
+	git clone https://github.com/pcardotatgit/FDM_Add_Security_Rules.git
+	cd FDM_Add_Security_Rules/
 	
 ## Running the scripts
 
 
-First of all you have to enter the device access credentials into the b>profile_ftd.yml</b><br>
+<b>1 - First</b> of all you have to enter the device access credentials into the <b>profile_ftd.yml</b><br>
 
 - <b>profile_ftd.yml</b> : define FTD device IP address and username / password needed to connect to it, and the FTD sofware version ( version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5, etc.. ).  This configuration file will be loaded by all other scripts.
 
-Second you have to run the <b>0_fdm_generate_token.py</b> script. This in order to avoid in every script to ask for a new authentication token, the <b>0_fdm_generate_token.py</b> aks for a token and stores it into a text file named <b>token.txt</b>.  The generated token will be valid during 30 minutes and all next scripts will firt read this <b>token.txt</b> file for retrieving the token.
+<b>2 - Second</b> you have to run the <b>0_fdm_generate_token.py</b> script. This in order to avoid in every script to ask for a new authentication token, the <b>0_fdm_generate_token.py</b> aks for a token and stores it into a text file named <b>token.txt</b>.  The generated token will be valid during 30 minutes and all next scripts will firt read this <b>token.txt</b> file for retrieving the token.
 
 So running <b>0_fdm_generate_token.py</0> is mandatory after added credentials? 
 
