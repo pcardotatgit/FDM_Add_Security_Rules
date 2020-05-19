@@ -74,13 +74,13 @@ def delete_service_from_csv(host,token,file,version):
 			#print ( ' print only some columuns in the rows  : '+row[1]+ ' -> ' + row[2] )	
 			print(row[0]+' : '+row[4])
 			try:
-				if row[0].find('EW_TCP')==0:
+				if row[0].find('EW_TCP')>=0:
 					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)  							
 					print("Single TCP Service Deleted")
-				elif row[0].find('EW_UDP')==0:
+				elif row[0].find('EW_UDP')>=0:
 					request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
 					print("Single UDP Service Deleted")
-				elif row[0].find('EW_TEST')==0:
+				elif row[0].find('EW_TEST')>=0:
 					request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
 					print("Port Group Deleted")					
 			except:
