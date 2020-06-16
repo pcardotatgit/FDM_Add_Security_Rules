@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2019 Cisco and/or its affiliates.
+Copyright (c) 2020 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -27,7 +27,9 @@ from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import time
+from crayons import blue, green, white, red, yellow,magenta, cyan
 
+new_auth_token=['none']#as global variable in order to make it easily updatable 
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -54,11 +56,17 @@ def fdm_login(host,username,password,version):
 		raise Exception("Error logging in: {}".format(request.content))
 	try:
 		access_token = request.json()['access_token']
+		fa = open("token.txt", "w")
+		fa.write(access_token)
+		fa.close()	
+		new_auth_token[0]=access_token
+		print (green("Token = "+access_token))
+		print("Saved into token.txt file")		
 		return access_token
 	except:
 		raise
 
-def delete_service_from_csv(host,token,file,version):
+def delete_service_from_csv(host,token,file,version,username,password):
 	'''
 	Delete every service object from the csv file
 	'''
@@ -72,20 +80,102 @@ def delete_service_from_csv(host,token,file,version):
 		for row in entries:
 			#print (' print the all row  : ' + row)
 			#print ( ' print only some columuns in the rows  : '+row[1]+ ' -> ' + row[2] )	
-			print(row[0]+' : '+row[4])
+			print(row[0]+' : '+row[4]+' : '+str(row[3])+' : '+str(row[5]))
 			try:
-				if row[0].find('EW_TCP')>=0:
-					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)  							
+				if row[5]=='False' and row[3]=='tcpportobject':
+					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+					status_code = request.status_code
+					if status_code == 401: 
+						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+						fdm_login(host,username,password,version)
+						line_content = []
+						with open('token.txt') as inputfile:
+							for line in inputfile:
+								if line.strip()!="":	
+									line_content.append(line.strip())						
+						auth_token = line_content[0]
+						#headers["Authorization"]="Bearer {}".format(auth_token)	
+						headers = {
+							"Content-Type": "application/json",
+							"Accept": "application/json",
+							"Authorization":"Bearer {}".format(auth_token)
+						}			
+						request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+						status_code = request.status_code
+					resp = request.text
+					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+						print (green("Delete was successful...",bold=True))
+						#json_resp = json.loads(resp)
+						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+					else :
+						request.raise_for_status()
+						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))
+					
 					print("Single TCP Service Deleted")
-				elif row[0].find('EW_UDP')>=0:
+				elif row[5]=='False' and row[3]=='udpportobject':
 					request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
+					status_code = request.status_code
+					if status_code == 401: 
+						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+						fdm_login(host,username,password,version)
+						line_content = []
+						with open('token.txt') as inputfile:
+							for line in inputfile:
+								if line.strip()!="":	
+									line_content.append(line.strip())						
+						auth_token = line_content[0]
+						#headers["Authorization"]="Bearer {}".format(auth_token)	
+						headers = {
+							"Content-Type": "application/json",
+							"Accept": "application/json",
+							"Authorization":"Bearer {}".format(auth_token)
+						}			
+						request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+						status_code = request.status_code
+					resp = request.text
+					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+						print (green("Delete was successful...",bold=True))
+						#json_resp = json.loads(resp)
+						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+					else :
+						request.raise_for_status()
+						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))					
+					
 					print("Single UDP Service Deleted")
-				elif row[0].find('EW_TEST')>=0:
+				elif row[5]=='False' and row[3]=='portobjectgroup':
 					request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
-					print("Port Group Deleted")					
+					status_code = request.status_code
+					if status_code == 401: 
+						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+						fdm_login(host,username,password,version)
+						line_content = []
+						with open('token.txt') as inputfile:
+							for line in inputfile:
+								if line.strip()!="":	
+									line_content.append(line.strip())						
+						auth_token = line_content[0]
+						#headers["Authorization"]="Bearer {}".format(auth_token)	
+						headers = {
+							"Content-Type": "application/json",
+							"Accept": "application/json",
+							"Authorization":"Bearer {}".format(auth_token)
+						}			
+						request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+						status_code = request.status_code
+					resp = request.text
+					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+						print (green("Delete was successful...",bold=True))
+						#json_resp = json.loads(resp)
+						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+					else :
+						request.raise_for_status()
+						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))							
+					print("Port Group Deleted")
+				else:
+					print(red('Nothing to delete !',bold=True))				
 			except:
 				raise	
-			time.sleep(0.5)
+			#time.sleep(0.5)
 	return (1)		
 
 
@@ -104,11 +194,11 @@ if __name__ == "__main__":
 	fa = open("token.txt", "r")
 	token = fa.readline()
 	fa.close()
-	#token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD) 
+	new_auth_token[0]=token
 	print()
 	print (" TOKEN :")
 	print(token)
 	print('======================================================================================================================================')	 
 	file="service_objects.txt"
 	print("OBJECTS TO DELETE :")
-	delete_service_from_csv(FDM_HOST,token,file,FDM_VERSION)
+	delete_service_from_csv(FDM_HOST,token,file,FDM_VERSION,FDM_USER,FDM_PASSWORD)

@@ -26,6 +26,10 @@ import yaml
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+from crayons import blue, green, white, red, yellow,magenta, cyan
+
+new_auth_token=['none']#as global variable in order to make it easily updatable 
+limit=1000 # number of object to retrieve in one single GET request
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -52,11 +56,17 @@ def fdm_login(host,username,password,version):
 		raise Exception("Error logging in: {}".format(request.content))
 	try:
 		access_token = request.json()['access_token']
+		fa = open("token.txt", "w")
+		fa.write(access_token)
+		fa.close()	
+		new_auth_token[0]=access_token
+		print (green("Token = "+access_token))
+		print("Saved into token.txt file")		
 		return access_token
 	except:
 		raise
 
-def fdm_get(host,token,url,version):
+def fdm_get(host,token,url,version,username,password,offset):
 	'''
 	This is a GET request to obtain the list of all Network Objects in the system.
 	'''
@@ -66,7 +76,27 @@ def fdm_get(host,token,url,version):
 		"Authorization":"Bearer {}".format(token)
 	}
 	try:
-		request = requests.get("https://{}:{}/api/fdm/v{}{}?limit=100".format(host, FDM_PORT,version,url),verify=False, headers=headers)
+		request = requests.get("https://{}:{}/api/fdm/v{}{}?offset={}&limit={}".format(host, FDM_PORT,version,url,offset,limit),verify=False, headers=headers)
+		status_code = request.status_code
+		
+		if status_code == 401: 
+			print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+			fdm_login(host,username,password,version)
+			line_content = []
+			with open('token.txt') as inputfile:
+				for line in inputfile:
+					if line.strip()!="":	
+						line_content.append(line.strip())						
+			auth_token = line_content[0]
+			#headers["Authorization"]="Bearer {}".format(auth_token)	
+			headers = {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+				"Authorization":"Bearer {}".format(auth_token)
+			}			
+			request = requests.get("https://{}:{}/api/fdm/v{}{}?offset={}&limit={}".format(host, FDM_PORT,version,url,offset,limit),verify=False, headers=headers)
+			status_code = request.status_code
+			
 		return request.json()
 	except:
 		raise
@@ -87,6 +117,7 @@ if __name__ == "__main__":
 	token = fa.readline()
 	fa.close()
 	#token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD) 
+	new_auth_token[0]=token
 	print()
 	print (" TOKEN :")
 	print(token)
@@ -94,61 +125,88 @@ if __name__ == "__main__":
 	fa = open("network_objects.txt","w")   
 	# List Network Object Groups First
 	api_url="/object/networkgroups"
-	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
-	print(json.dumps(networks,indent=4,sort_keys=True))
-	for line in networks['items']:
-		print('name:', line['name'])
-		print('Type:', line['type'])
-		print('value:')
-		for line2 in line['objects']:		
-			print('==',line2['name'])
-		print('description:', line['description'])
-		print('type:', line['type'])
-		print('id:', line['id'])
-		print()
-		if ("utsideIPv4" not in line['name']) and ("ny-ipv" not in line['name']):
-			fa.write(line['name'])
-			fa.write(';GROUP;')
-			for line2 in line['objects']:				
-				fa.write(line2['name'])
-				fa.write(',')
-			fa.write(';')   
-			if line['description']==None:
-				line['description']="No Description"
-			fa.write(line['description'])
-			fa.write(';')			
-			fa.write(line['type'])
-			fa.write(';')
-			fa.write(line['id'])
-			fa.write('\n')	
-	
+	token=new_auth_token[0]
+	offset=0
+	go=1
+	ii=0
+	while go==1:	
+		networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset)
+		print(json.dumps(networks,indent=4,sort_keys=True))
+		for line in networks['items']:
+			ii+=1
+			print('name:', line['name'])
+			print('Type:', line['type'])
+			print('value:')
+			for line2 in line['objects']:		
+				print('==',line2['name'])
+			print('description:', line['description'])
+			print('type:', line['type'])
+			print('id:', line['id'])
+			print('system object:', line['isSystemDefined'])
+			print()
+			if ("utsideIPv4" not in line['name']) and ("ny-ipv" not in line['name']):
+				fa.write(line['name'])
+				fa.write(';GROUP;')
+				for line2 in line['objects']:				
+					fa.write(line2['name'])
+					fa.write(',')
+				fa.write(';')   
+				if line['description']==None:
+					line['description']="No Description"
+				fa.write(line['description'])
+				fa.write(';')			
+				fa.write(line['type'])
+				fa.write(';')
+				fa.write(line['id'])
+				fa.write(';')
+				fa.write(str(line['isSystemDefined']))				
+				fa.write('\n')	
+		if ii>=999:
+			go=1
+			offset+=ii-1
+		else:
+			go=0	
 	# And then List Network Objects
 	api_url="/object/networks"
-	networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
-	#print(json.dumps(networks,indent=4,sort_keys=True))
-	for line in networks['items']:
-		print('name:', line['name'])
-		print('Type:', line['subType'])
-		print('value:', line['value'])
-		print('description:', line['description'])
-		print('type:', line['type'])
-		print('id:', line['id'])
-		print()
-		if ("utsideIPv4" not in line['name']) and ("ny-ipv" not in line['name']):
-			fa.write(line['name'])
-			fa.write(';')
-			fa.write(line['subType'])
-			fa.write(';')			
-			fa.write(line['value'])
-			fa.write(';')   
-			if line['description']==None:
-				line['description']="No Description"
-			fa.write(line['description'])
-			fa.write(';')			
-			fa.write(line['type'])
-			fa.write(';')
-			fa.write(line['id'])
-			fa.write('\n')
+	token=new_auth_token[0]
+	offset=0
+	go=1
+	ii=0
+	while go==1:	
+		networks = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset)
+		#print(json.dumps(networks,indent=4,sort_keys=True))
+		for line in networks['items']:
+			ii+=1
+			print('name:', line['name'])
+			print('Type:', line['subType'])
+			print('value:', line['value'])
+			print('description:', line['description'])
+			print('type:', line['type'])
+			print('id:', line['id'])
+			print('system object:', line['isSystemDefined'])
+			print()
+			if ("utsideIPv4" not in line['name']) and ("ny-ipv" not in line['name']):
+				fa.write(line['name'])
+				fa.write(';')
+				fa.write(line['subType'])
+				fa.write(';')			
+				fa.write(line['value'])
+				fa.write(';')   
+				if line['description']==None:
+					line['description']="No Description"
+				fa.write(line['description'])
+				fa.write(';')			
+				fa.write(line['type'])
+				fa.write(';')
+				fa.write(line['id'])
+				fa.write(';')
+				fa.write(str(line['isSystemDefined']))				
+				fa.write('\n')
+		if ii>=999:
+			go=1
+			offset+=ii-1
+		else:
+			go=0				
 	fa.close()			
 	
 	

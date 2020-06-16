@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2019 Cisco and/or its affiliates.
+Copyright (c) 2020 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -33,7 +33,7 @@ import json
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
+from crayons import blue, green, white, red, yellow,magenta, cyan
 	
 def yaml_load(filename):
 	'''
@@ -101,10 +101,10 @@ if __name__ == "__main__":
 	fa.write(token)
 	fa.close()
 	print()	
-	print("BINGO ! You got a token ! :")
+	print(yellow("BINGO ! You got a token ! :",bold=True))
 	print()	
 	print() 
-	print(token)
+	print(green(token,bold=True))
 	print()  
 	print() 	
 	print ('==========================================================================================')
@@ -113,5 +113,5 @@ if __name__ == "__main__":
 	print ('JSON HOSTNAME IS =')
 	print(json.dumps(hostname,indent=4,sort_keys=True))	
 	print()
-	print('  ===>  ALL GOOD !')
+	print(green('  ===>  ALL GOOD !',bold=True))
 	print()

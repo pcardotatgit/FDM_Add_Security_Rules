@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2019 Cisco and/or its affiliates.
+Copyright (c) 2020 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -28,7 +28,10 @@ import json
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+from crayons import blue, green, white, red, yellow,magenta, cyan
 
+new_auth_token=['none']#as global variable in order to make it easily updatable 
+limit=1000 # number of object ot get in on request
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -55,12 +58,17 @@ def fdm_login(host,username,password,version):
 		raise Exception("Error logging in: {}".format(request.content))
 	try:
 		access_token = request.json()['access_token']
+		fa = open("token.txt", "w")
+		fa.write(access_token)
+		fa.close()	
+		new_auth_token[0]=access_token
+		print (green("Token = "+access_token))
+		print("Saved into token.txt file")		
 		return access_token
 	except:
 		raise
-
 	   
-def fdm_create_access_policy(host,token,payload,parent_id,version):
+def fdm_create_access_policy(host,token,payload,parent_id,version,username,password):
 	'''
 	This is a POST request to create a new access list.
 	'''
@@ -72,12 +80,56 @@ def fdm_create_access_policy(host,token,payload,parent_id,version):
 	try:
 		request = requests.post("https://{}:{}/api/fdm/v{}/policy/accesspolicies/{}/accessrules".format(host, FDM_PORT,version,parent_id),
 					json=payload, headers=headers, verify=False)
+					
+		status_code = request.status_code
+		if status_code == 422: 
+			print(red("Something went wrong . open the error.log file",bold=True))	
+			print(red("Let's exit in order to debug Data",bold=True))
+			print(cyan("Possible Causes : ",bold=True))
+			print(cyan("Object Already Exists "))
+			print(cyan("The payload is too large. "))
+			print(cyan("The payload contains an unprocessable or unreadable entity such as a invalid attribut name or incorrect JSON syntax."))
+			resp = request.text			
+			print (red("Error occurred in POST --> "+resp,bold=True))
+			fh = open("error.log", "a+")
+			fh.write(resp)
+			fh.write("\n")			
+			fh.write("=========================================")
+			fh.write("\n")
+			fh.write(json.dumps(payload,indent=4,sort_keys=True))
+			fh.close()
+			#sys.exit()			
+		if status_code == 401: 
+			print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+			fdm_login(host,username,password,version)
+			line_content = []
+			with open('token.txt') as inputfile:
+				for line in inputfile:
+					if line.strip()!="":	
+						line_content.append(line.strip())						
+			auth_token = line_content[0]
+			#headers["Authorization"]="Bearer {}".format(auth_token)	
+			headers = {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+				"Authorization":"Bearer {}".format(auth_token)
+			}			
+			request = requests.post("https://{}:{}/api/fdm/v{}/policy/accesspolicies/{}/accessrules".format(host, FDM_PORT,version,parent_id),
+					json=payload, headers=headers, verify=False)
+			status_code = request.status_code
+		resp = request.text
+		if status_code == 200 or status_code == 201 or status_code == 202:
+			print (green("Post was successful...",bold=True))
+			#json_resp = json.loads(resp)
+			#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+		else :
+			request.raise_for_status()
+			print (red("Error occurred in POST --> "+resp+' Status Code = '+str(status_code)))							
 		return request.json()
 	except:
 		raise
 		
-	
-def fdm_get(host,token,url,version):
+def fdm_get(host,token,url,version,username,password):
 	'''
 	generic GET request which call the url API and return the json result
 	'''
@@ -87,7 +139,26 @@ def fdm_get(host,token,url,version):
 		"Authorization":"Bearer {}".format(token)
 	}
 	try:
-		request = requests.get("https://{}:{}/api/fdm/v{}{}?limit=100".format(host, FDM_PORT,version,url),verify=False, headers=headers)
+		request = requests.get("https://{}:{}/api/fdm/v{}{}?limit={}".format(host, FDM_PORT,version,url,limit),verify=False, headers=headers)
+		status_code = request.status_code
+		if status_code == 401: 
+			print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+			fdm_login(host,username,password,version)
+			line_content = []
+			with open('token.txt') as inputfile:
+				for line in inputfile:
+					if line.strip()!="":	
+						line_content.append(line.strip())						
+			auth_token = line_content[0]
+			#headers["Authorization"]="Bearer {}".format(auth_token)	
+			headers = {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+				"Authorization":"Bearer {}".format(auth_token)
+			}			
+			request = requests.get("https://{}:{}/api/fdm/v{}{}?limit={}".format(host, FDM_PORT,version,url,limit),verify=False, headers=headers)
+			status_code = request.status_code
+			
 		return request.json()
 	except:
 		raise  
@@ -163,13 +234,13 @@ if __name__ == "__main__":
 	fa = open("token.txt", "r")
 	token = fa.readline()
 	fa.close()
-	#token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD) 
+	new_auth_token[0]=token 
 	print('TOKEN = ')
 	print(token)
 	print('======================================================================================================================================')   
 	# STEP 1  Get the Policy ID , we need it as the parent ID for accessrules management	
 	api_url="/policy/accesspolicies"
-	accesspolicy = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	accesspolicy = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD)
 	#print(json.dumps(accesspolicy,indent=4,sort_keys=True))
 	data=accesspolicy['items']
 	for entry in data:
@@ -179,12 +250,15 @@ if __name__ == "__main__":
 	print()
 	#STEP 2 get all network objects IDs and put them in a dictionnary
 	api_url="/object/networks"
-	network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	token=new_auth_token[0]
+	network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD)
 	#STEP 3 get all service objects IDs and put them into 2 dictionnaries one for tcp and the other for udp
 	api_url="/object/tcpports"
-	TCP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	token=new_auth_token[0]
+	TCP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD)
 	api_url="/object/udpports"
-	UDP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION)
+	token=new_auth_token[0]
+	UDP_network_objects_dict = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD)
 	#STEP 4 read small_access_list.csv csv file
 	list=[]
 	list=read_csv("small_access_list.csv",network_objects_dict,TCP_network_objects_dict,UDP_network_objects_dict)	
@@ -193,7 +267,8 @@ if __name__ == "__main__":
 		print(objet) 
 		print() 
 		#Add access Policy
-		post_response = fdm_create_access_policy(FDM_HOST,token,objet,PARENT_ID,FDM_VERSION)
-		print(json.dumps(post_response,indent=4,sort_keys=True))
+		token=new_auth_token[0]
+		post_response = fdm_create_access_policy(FDM_HOST,token,objet,PARENT_ID,FDM_VERSION,FDM_USER,FDM_PASSWORD)
+		print(cyan(json.dumps(post_response,indent=4,sort_keys=True)))
 		print('')	
 		
