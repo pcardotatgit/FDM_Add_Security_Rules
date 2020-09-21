@@ -25,7 +25,7 @@ import csv
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
+from crayons import blue, green, white, red, yellow,magenta, cyan
 
 def yaml_load(filename):
 	fh = open(filename, "r")
@@ -34,27 +34,34 @@ def yaml_load(filename):
 	return yamldata
 	
 def fdm_login(host,username,password,version):
-	'''
-	This is the normal login which will give you a ~30 minute session with no refresh.  
-	Should be fine for short lived work.  
-	Do not use for sessions that need to last longer than 30 minutes.
-	'''
-	headers = {
-		"Content-Type": "application/json",
-		"Accept": "application/json",
-		"Authorization":"Bearer"
-	}
-	payload = {"grant_type": "password", "username": username, "password": password}
-	
-	request = requests.post("https://{}:{}/api/fdm/v{}/fdm/token".format(host, FDM_PORT,version),
-						  json=payload, verify=False, headers=headers)
-	if request.status_code == 400:
-		raise Exception("Error logging in: {}".format(request.content))
-	try:
-		access_token = request.json()['access_token']
-		return access_token
-	except:
-		raise
+    '''
+    This is the normal login which will give you a ~30 minute session with no refresh.  
+    Should be fine for short lived work.  
+    Do not use for sessions that need to last longer than 30 minutes.
+    '''
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization":"Bearer"        
+    }
+    
+    payload = {"grant_type": "password", "username": username, "password": password}
+    
+    request = requests.post("https://{}:{}/api/fdm/v{}/fdm/token".format(host, FDM_PORT,version),
+                          json=payload, verify=False, headers=headers)
+    if request.status_code == 400:
+        raise Exception("Error logging in: {}".format(request.content))
+    try:
+        access_token = request.json()['access_token']
+        fa = open("./temp/token.txt", "w")
+        fa.write(access_token)
+        fa.close()    
+        new_auth_token[0]=access_token
+        print (green("Token = "+access_token))
+        print("Saved into token.txt file")        
+        return access_token
+    except:
+        raise
 
 def deploy(host,token,version):
 	'''
@@ -66,8 +73,8 @@ def deploy(host,token,version):
 		"Authorization":"Bearer {}".format(token)
 	}
 	try:
-		request = requests.post("https://{}:{}/api/fdm/v{}/operational/deploy".format(host, FDM_PORT,version),
-					 headers=headers, verify=False)
+        api_url="https://{}:{}/api/fdm/v{}/operational/deploy".format(host, FDM_PORT,version)
+		request = requests.post(api_url,headers=headers, verify=False)
 		return request.json()
 	except:
 		raise
@@ -94,3 +101,4 @@ if __name__ == "__main__":
 	print('======================================================================================================================================')	 
 	print("DEPLOYEMENT")
 	deploy(FDM_HOST,token,FDM_VERSION)
+    print(green("DONE !",bold=True))

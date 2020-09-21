@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2019 Cisco and/or its affiliates.
+Copyright (c) 2020 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -16,8 +16,8 @@ writing, software distributed under the License is distributed on an "AS
 IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 or implied.
 
-This script gets all ports object ( services ) previously created, display them and 
-save them into service_objects.txt file
+This script    displays and save into network_objects.txt file all network objects 
+except  any-ipv4 and any-ipv6
 
 '''
 import requests
@@ -48,8 +48,9 @@ def fdm_login(host,username,password,version):
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization":"Bearer"
+        "Authorization":"Bearer"        
     }
+    
     payload = {"grant_type": "password", "username": username, "password": password}
     
     request = requests.post("https://{}:{}/api/fdm/v{}/fdm/token".format(host, FDM_PORT,version),
@@ -81,7 +82,7 @@ def fdm_get(host,token,url,version,username,password,offset,limit):
     try:
         #Let's build the api url
         # depending on the request api_path, we could need additionnal argument. Here under we have an example for network objects
-        if ( "object/network" in url ) or ( "object/tcpports" in url ) or ( "/object/udpports" in url ) or ( "/object/portgroups" in url ):
+        if "object/network" in url:
             api_url="https://{}:{}/api/fdm/v{}{}?offset={}&limit={}".format(host, FDM_PORT,version,url,offset,limit)
         elif "some_string" in url:
             api_url="DEFINE THE API URL HERE"
@@ -108,134 +109,109 @@ def fdm_get(host,token,url,version,username,password,offset,limit):
         return request.json()
     except:
         raise
-
-def get_services():
+        
+def get_networks():
     '''
-        GET all single service objects and all service object groups
+        GET all single network objects and all object groups
         Print them
         Save result into a resulting CSV file
     '''
-    fa = open("./temp/service_objects.txt","w")     
-    # get Port Object Groups
-    api_path="/object/portgroups"
+    # Let's Create and Open a resulting file into which we will store all network objects and their details
+    fa = open("./temp/network_objects.txt","w")   
+    # List Network Object Groups First
+    api_path="/object/networkgroups"
+    # We read the network object list thanks to a loop which reads 1000 objects at each rounds.
+    # Let's initialize the loop
+    offset=0 # offset help us to specify at which position in the list we read the object list
+    go=1 # used to stop the loop
+    # Here under the network groups loop
+    while go:       
+        token=new_auth_token[0] # We refresh the initial variable which store the token in case of a token renewal during the last REST CALL
+        networks = fdm_get(FDM_HOST,token,api_path,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset,limit_global)
+        #print(json.dumps(networks,indent=4,sort_keys=True)) # print the JSON result in the console, into a indented readable format        
+        index=0 # the number of objects we have read within the loop
+        for item in networks['items']:
+            # We print interesting keys for all network object items. 
+            index+=1
+            print('name:', item['name'])
+            print('Type:', item['type'])
+            print('value:')
+            for item2 in item['objects']:        
+                print('==',item2['name'])
+            print('description:', item['description'])
+            print('type:', item['type'])
+            print('id:', item['id'])
+            print('system object:', item['isSystemDefined']) # this keys is the keys which identifies System Objects. This is a boolean
+            print()
+            if ("utsideIPv4" not in item['name']) and ("ny-ipv" not in item['name']):# here is a basic example for filtering outputs based on strings contained into the object names
+                # We save objects details into the resulting file
+                fa.write(item['name'])
+                fa.write(';GROUP;')
+                for item2 in item['objects']:                
+                    fa.write(item2['name'])
+                    fa.write(',')
+                fa.write(';')   
+                if item['description']==None:
+                    item['description']="No Description"
+                fa.write(item['description'])
+                fa.write(';')            
+                fa.write(item['type'])
+                fa.write(';')
+                fa.write(item['id'])
+                fa.write(';')
+                fa.write(str(item['isSystemDefined']))# we must convert  the value into a string
+                fa.write('\n')    # Write a [ new item ] character in the resulting file in order to avoid to ha all results into one single item
+        if index>=limit_global-1:
+            # index value is superior than the limit_global-1 value.  That means that we DON'T HAVE READ the entire table
+            go=1 # just to confirm that we continue, this item is not mandatory
+            offset+=index-1 # offset for the next round
+        else:
+            # index value is inferior than the limit_global-1 value.  That means that we HAVE READ the entire table
+            go=0 # exit from the loop    
+    # And then List Network Objects
+    api_path="/object/networks"
+    #token=new_auth_token[0] # We refresh the initial variable which store the token in case of a token renewal during the last REST CALL
     offset=0
     go=1
     index=0
     while go:    
-        token=new_auth_token[0]    
-        services = fdm_get(FDM_HOST,token,api_path,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset,limit_global)
-        print(json.dumps(services,indent=4,sort_keys=True))
-        for line in services['items']:
+        token=new_auth_token[0] # We refresh the initial variable which store the token in case of a token renewal during the last REST CALL
+        networks = fdm_get(FDM_HOST,token,api_path,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset,limit_global)
+        print(json.dumps(networks,indent=4,sort_keys=True))
+        for item in networks['items']:
             index+=1
-            print('name:', line['name'])
-            for line2 in line['objects']:            
-                print('==> name:', line2['name'])
-            print('description:', line['description'])
-            print('type:', line['type'])
-            print('id:', line['id'])
-            print('system object:', line['isSystemDefined'])
+            print('name:', item['name'])
+            print('Type:', item['subType'])
+            print('value:', item['value'])
+            print('description:', item['description'])
+            print('type:', item['type'])
+            print('id:', item['id'])
+            print('system object:', item['isSystemDefined'])
             print()
-            #filter only object named  NEW_TCPxxxx 
-            if line['isSystemDefined']==0:
-                fa.write(line['name'])
+            if ("utsideIPv4" not in item['name']) and ("ny-ipv" not in item['name']):
+                fa.write(item['name'])
                 fa.write(';')
-                for line2 in line['objects']:
-                    fa.write(line2['name'])
-                    fa.write(',')
+                fa.write(item['subType'])
+                fa.write(';')            
+                fa.write(item['value'])
                 fa.write(';')   
-                if line['description']==None:
-                    line['description']="No Description"
-                fa.write(line['description'])
+                if item['description']==None:
+                    item['description']="No Description"
+                fa.write(item['description'])
                 fa.write(';')            
-                fa.write(line['type'])
+                fa.write(item['type'])
                 fa.write(';')
-                fa.write(line['id'])
+                fa.write(item['id'])
                 fa.write(';')
-                fa.write(str(line['isSystemDefined']))                            
-                fa.write('\n')        
-        if index>=limit_global-1:
-            go=1
-            offset+=index-1
-        else:
-            go=0                
-    # get Single TCP Port Objects
-    api_path="/object/tcpports"
-    offset=0
-    go=1
-    index=0
-    while go:   
-        token=new_auth_token[0]
-        services = fdm_get(FDM_HOST,token,api_path,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset,limit_global)
-        #print(json.dumps(services,indent=4,sort_keys=True))
-        for line in services['items']:
-            index+=1
-            print('name:', line['name'])
-            print('value:', line['port'])
-            print('description:', line['description'])
-            print('type:', line['type'])
-            print('id:', line['id'])
-            print('system object:', line['isSystemDefined'])
-            print()
-            if line['isSystemDefined']==0:
-                fa.write(line['name'])
-                fa.write(';')            
-                fa.write(line['port'])
-                fa.write(';')   
-                if line['description']==None:
-                    line['description']="No Description"
-                fa.write(line['description'])
-                fa.write(';')            
-                fa.write(line['type'])
-                fa.write(';')
-                fa.write(line['id'])
-                fa.write(';')
-                fa.write(str(line['isSystemDefined']))            
+                fa.write(str(item['isSystemDefined']))                
                 fa.write('\n')
         if index>=limit_global-1:
             go=1
             offset+=index-1
         else:
-            go=0            
-    # get Single UDP Port Objects        
-    api_path="/object/udpports"
-    offset=0
-    go=1
-    index=0
-    while go: 
-        token=new_auth_token[0]
-        services = fdm_get(FDM_HOST,token,api_path,FDM_VERSION,FDM_USER,FDM_PASSWORD,offset,limit_global)
-        #print(json.dumps(services,indent=4,sort_keys=True))
-        for line in services['items']:
-            index+=1
-            print('name:', line['name'])
-            print('value:', line['port'])
-            print('description:', line['description'])
-            print('type:', line['type'])
-            print('id:', line['id'])
-            print('system object:', line['isSystemDefined'])
-            print()
-            if line['isSystemDefined']==0:
-                fa.write(line['name'])
-                fa.write(';')            
-                fa.write(line['port'])
-                fa.write(';')   
-                if line['description']==None:
-                    line['description']="No Description"
-                fa.write(line['description'])
-                fa.write(';')            
-                fa.write(line['type'])
-                fa.write(';')
-                fa.write(line['id'])
-                fa.write(';')
-                fa.write(str(line['isSystemDefined']))                
-                fa.write('\n')        
-        if index>=limit_global-1:
-            go=1
-            offset+=index-1
-        else:
-            go=0                    
-    fa.close() 
-    
+            go=0                
+    fa.close()        
+
 if __name__ == "__main__":
     #  load FDM IP & credentials here
     ftd_host = {}
@@ -254,9 +230,6 @@ if __name__ == "__main__":
     print()
     print (" TOKEN :")
     print(token)
-    print('======================================================================================================================================')
-    get_services()    
-           
-    
-    
-    
+    print('======================================================================================================================================')    
+    get_networks()
+    print(green("DONE ! The result is in the [ ./temp/network_objects.txt ] file ",bold=True))

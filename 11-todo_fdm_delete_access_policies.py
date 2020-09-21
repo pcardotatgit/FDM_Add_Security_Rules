@@ -16,7 +16,8 @@ writing, software distributed under the License is distributed on an "AS
 IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 or implied.
 
-This script deletes all service objects contained into service_objects.txt file
+This script deletes all access policies contained into access_policies.txt
+
 
 '''
 import requests
@@ -26,7 +27,6 @@ import csv
 from pprint import pprint
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-import time
 from crayons import blue, green, white, red, yellow,magenta, cyan
 
 new_auth_token=['none']#as global variable in order to make it easily updatable 
@@ -66,7 +66,7 @@ def fdm_login(host,username,password,version):
 	except:
 		raise
 
-def delete_service_from_csv(host,token,file,version,username,password):
+def delete_access_policy_from_csv(host,token,file,parent_id,version,username,password):
 	'''
 	Delete every service object from the csv file
 	'''
@@ -80,10 +80,10 @@ def delete_service_from_csv(host,token,file,version,username,password):
 		for row in entries:
 			#print (' print the all row  : ' + row)
 			#print ( ' print only some columuns in the rows  : '+row[1]+ ' -> ' + row[2] )	
-			print(row[0]+' : '+row[4]+' : '+str(row[3])+' : '+str(row[5]))
+			print(row[0]+' id = '+row[7])
 			try:
-				if row[5]=='False' and row[3]=='tcpportobject':
-					request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+				if row[0].find('NEW_')==0:
+					request = requests.delete("https://{}:{}/api/fdm/v{}/policy/accesspolicies/{}/accessrules/{}".format(host, FDM_PORT,version,parent_id,row[7]), headers=headers, verify=False)  		
 					status_code = request.status_code
 					if status_code == 401: 
 						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
@@ -100,8 +100,8 @@ def delete_service_from_csv(host,token,file,version,username,password):
 							"Accept": "application/json",
 							"Authorization":"Bearer {}".format(auth_token)
 						}			
-						request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
-						status_code = request.status_code
+						request = requests.delete("https://{}:{}/api/fdm/v{}/policy/accesspolicies/{}/accessrules/{}".format(host, FDM_PORT,version,parent_id,row[7]), headers=headers, verify=False)
+						status_code = request.status_code	
 					resp = request.text
 					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
 						print (green("Delete was successful...",bold=True))
@@ -109,75 +109,46 @@ def delete_service_from_csv(host,token,file,version,username,password):
 						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
 					else :
 						request.raise_for_status()
-						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))
-					
-					print("Single TCP Service Deleted")
-				elif row[5]=='False' and row[3]=='udpportobject':
-					request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
-					status_code = request.status_code
-					if status_code == 401: 
-						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-						fdm_login(host,username,password,version)
-						line_content = []
-						with open('token.txt') as inputfile:
-							for line in inputfile:
-								if line.strip()!="":	
-									line_content.append(line.strip())						
-						auth_token = line_content[0]
-						#headers["Authorization"]="Bearer {}".format(auth_token)	
-						headers = {
-							"Content-Type": "application/json",
-							"Accept": "application/json",
-							"Authorization":"Bearer {}".format(auth_token)
-						}			
-						request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
-						status_code = request.status_code
-					resp = request.text
-					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
-						print (green("Delete was successful...",bold=True))
-						#json_resp = json.loads(resp)
-						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-					else :
-						request.raise_for_status()
-						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))					
-					
-					print("Single UDP Service Deleted")
-				elif row[5]=='False' and row[3]=='portobjectgroup':
-					request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)   	
-					status_code = request.status_code
-					if status_code == 401: 
-						print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-						fdm_login(host,username,password,version)
-						line_content = []
-						with open('token.txt') as inputfile:
-							for line in inputfile:
-								if line.strip()!="":	
-									line_content.append(line.strip())						
-						auth_token = line_content[0]
-						#headers["Authorization"]="Bearer {}".format(auth_token)	
-						headers = {
-							"Content-Type": "application/json",
-							"Accept": "application/json",
-							"Authorization":"Bearer {}".format(auth_token)
-						}			
-						request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
-						status_code = request.status_code
-					resp = request.text
-					if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
-						print (green("Delete was successful...",bold=True))
-						#json_resp = json.loads(resp)
-						#print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-					else :
-						request.raise_for_status()
-						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))							
-					print("Port Group Deleted")
-				else:
-					print(red('Nothing to delete !',bold=True))				
+						print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))						
+					print("Access Policy removed")
 			except:
-				raise	
-			#time.sleep(0.5)
-	return (1)		
+				raise			
+	return (1)	
+	
+def fdm_get(host,token,url,version,username,password):
+	'''
+	generic GET request.
+	'''
+	headers = {
+	   "Content-Type": "application/json",
+	   "Accept": "application/json",
+	   "Authorization":"Bearer {}".format(token)
+	}
+	try:
 
+		request = requests.get("https://{}:{}/api/fdm/v{}{}?limit=100".format(host, FDM_PORT,version,url),verify=False, headers=headers)		
+		status_code = request.status_code
+		if status_code == 401: 
+			print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+			fdm_login(host,username,password,version)
+			line_content = []
+			with open('token.txt') as inputfile:
+				for line in inputfile:
+					if line.strip()!="":	
+						line_content.append(line.strip())						
+			auth_token = line_content[0]
+			#headers["Authorization"]="Bearer {}".format(auth_token)	
+			headers = {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+				"Authorization":"Bearer {}".format(auth_token)
+			}			
+			request = requests.get("https://{}:{}/api/fdm/v{}{}?limit=100".format(host, FDM_PORT,version,url),verify=False, headers=headers)
+			status_code = request.status_code	
+						
+		return request.json()
+	except:
+		raise
 
 if __name__ == "__main__":
 	#  load FMC IP & credentials here
@@ -199,6 +170,16 @@ if __name__ == "__main__":
 	print (" TOKEN :")
 	print(token)
 	print('======================================================================================================================================')	 
-	file="service_objects.txt"
+	# STEP 1  Get the Policy ID , we need it as the parent ID for accessrules management	
+	api_url="/policy/accesspolicies"
+	accesspolicy = fdm_get(FDM_HOST,token,api_url,FDM_VERSION,FDM_USER,FDM_PASSWORD)
+	#print(json.dumps(accesspolicy,indent=4,sort_keys=True))
+	data=accesspolicy['items']
+	for entry in data:
+	   PARENT_ID=entry['id']
+	print('PARENT ID ( needed for access policies ) = ')
+	print(PARENT_ID)	
+	file="./objects_csv_files/access_policies.txt"
 	print("OBJECTS TO DELETE :")
-	delete_service_from_csv(FDM_HOST,token,file,FDM_VERSION,FDM_USER,FDM_PASSWORD)
+	token=new_auth_token[0]
+	delete_access_policy_from_csv(FDM_HOST,token,file,PARENT_ID,FDM_VERSION,FDM_USER,FDM_PASSWORD)
