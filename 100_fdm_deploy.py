@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2019 Cisco and/or its affiliates.
+Copyright (c) 2020 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -28,10 +28,10 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from crayons import blue, green, white, red, yellow,magenta, cyan
 
 def yaml_load(filename):
-	fh = open(filename, "r")
-	yamlrawtext = fh.read()
-	yamldata = yaml.load(yamlrawtext)
-	return yamldata
+    fh = open(filename, "r")
+    yamlrawtext = fh.read()
+    yamldata = yaml.load(yamlrawtext,Loader=yaml.FullLoader)
+    return yamldata
 	
 def fdm_login(host,username,password,version):
     '''
@@ -91,10 +91,9 @@ if __name__ == "__main__":
 	FDM_PORT = ftd_host["devices"][0]['port']
 	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
-	fa = open("token.txt", "r")
+	fa = open("./temp/token.txt", "r")
 	token = fa.readline()
 	fa.close()
-	#token = fdm_login(FDM_HOST,FDM_USER,FDM_PASSWORD) 
 	print()
 	print (" TOKEN :")
 	print(token)

@@ -32,39 +32,39 @@ from crayons import blue, green, white, red, yellow,magenta, cyan
 new_auth_token=['none']#as global variable in order to make it easily updatable 
 
 def yaml_load(filename):
-	fh = open(filename, "r")
-	yamlrawtext = fh.read()
-	yamldata = yaml.load(yamlrawtext)
-	return yamldata
+    fh = open(filename, "r")
+    yamlrawtext = fh.read()
+    yamldata = yaml.load(yamlrawtext,Loader=yaml.FullLoader)
+    return yamldata
 	
 def fdm_login(host,username,password,version):
-	'''
-	This is the normal login which will give you a ~30 minute session with no refresh.  
-	Should be fine for short lived work.  
-	Do not use for sessions that need to last longer than 30 minutes.
-	'''
-	headers = {
-		"Content-Type": "application/json",
-		"Accept": "application/json",
-		"Authorization":"Bearer"
-	}
-	payload = {"grant_type": "password", "username": username, "password": password}
-	
-	request = requests.post("https://{}:{}/api/fdm/v{}/fdm/token".format(host, FDM_PORT,version),
-						  json=payload, verify=False, headers=headers)
-	if request.status_code == 400:
-		raise Exception("Error logging in: {}".format(request.content))
-	try:
-		access_token = request.json()['access_token']
-		fa = open("token.txt", "w")
-		fa.write(access_token)
-		fa.close()	
-		new_auth_token[0]=access_token
-		print (green("Token = "+access_token))
-		print("Saved into token.txt file")		
-		return access_token
-	except:
-		raise
+    '''
+    This is the normal login which will give you a ~30 minute session with no refresh.  
+    Should be fine for short lived work.  
+    Do not use for sessions that need to last longer than 30 minutes.
+    '''
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization":"Bearer"
+    }
+    payload = {"grant_type": "password", "username": username, "password": password}
+    
+    request = requests.post("https://{}:{}/api/fdm/v{}/fdm/token".format(host, FDM_PORT,version),
+                          json=payload, verify=False, headers=headers)
+    if request.status_code == 400:
+        raise Exception("Error logging in: {}".format(request.content))
+    try:
+        access_token = request.json()['access_token']
+        fa = open("./temp/token.txt", "w")
+        fa.write(access_token)
+        fa.close()    
+        new_auth_token[0]=access_token
+        print (green("Token = "+access_token))
+        print("Saved into token.txt file")        
+        return access_token
+    except:
+        raise
 
 def delete_access_policy_from_csv(host,token,file,parent_id,version,username,password):
 	'''
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 	FDM_PORT = ftd_host["devices"][0]['port']
 	FDM_VERSION = ftd_host["devices"][0]['version']
 	# get token from token.txt
-	fa = open("token.txt", "r")
+	fa = open("./temp/token.txt", "r")
 	token = fa.readline()
 	fa.close()
 	new_auth_token[0]=token
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 	   PARENT_ID=entry['id']
 	print('PARENT ID ( needed for access policies ) = ')
 	print(PARENT_ID)	
-	file="./objects_csv_files/access_policies.txt"
+	file="./temp/access_policies.txt"
 	print("OBJECTS TO DELETE :")
 	token=new_auth_token[0]
 	delete_access_policy_from_csv(FDM_HOST,token,file,PARENT_ID,FDM_VERSION,FDM_USER,FDM_PASSWORD)
