@@ -1,0 +1,5 @@
+requests
+crayons
+pyyaml
+csv
+pprint
