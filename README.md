@@ -21,6 +21,11 @@ Installing these script is pretty straight forward . You can just copy / and pas
 
 	virtualenv env 
 	\env\Scripts\activate.bat 
+	
+	or
+	
+	python -m venv venv 
+	venv\Scripts\activate
 
 ### git clone the scripts
 
