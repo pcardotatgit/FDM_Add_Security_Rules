@@ -41,7 +41,8 @@ Installing these script is pretty straight forward . You can just copy / and pas
 
 **1 - First** of all you have to enter the device access credentials into the **profile_ftd.yml**<br>
 
-- **profile_ftd.yml** : define FTD device IP address and **username / password** needed to connect to it, and the FTD sofware version ( version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5, etc.. ).  This configuration file will be loaded by all other scripts.
+- **profile_ftd.yml** : define FTD device IP address and **username / password** needed to connect to it, and the FTD sofware version ( version = 2 for FTD 6.3,  version = 3 for 6.4 , version = 4 for 6.5, version = 5 for 7.0, version = 6 for 7.2, the **0_fdm_generate_token.py** script will display you the valid API versions to use ).  This configuration file will be loaded by all other scripts.
+
 
 **2 - Second** you have to run the **0_fdm_generate_token.py** script. This in order to avoid in every script to ask for a new authentication token, the **0_fdm_generate_token.py** asks for a token and stores it into a text file named **./temp/token.txt**.  
 

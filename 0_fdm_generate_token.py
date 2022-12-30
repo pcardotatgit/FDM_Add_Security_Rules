@@ -24,6 +24,28 @@ def yaml_load(filename):
     yamldata = yaml.load(yamlrawtext,Loader=yaml.FullLoader)
     return yamldata
     
+def fdm_get_api_versions(ipaddr,token):
+    '''
+    
+    '''
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization":"Bearer "+token
+    }    
+    request = requests.get("https://{}:{}/api/versions".format(ipaddr, FDM_PORT), verify=False, headers=headers)
+    if request.status_code == 400:
+        raise Exception("Error logging in: {}".format(request.content))
+    try:
+        #resp = request.json()
+        print (cyan("VALID API VERSIONS ARE :",bold=True))   
+        print()
+        print (cyan(request.content,bold=True))  
+        print()        
+    except:
+        raise
+    
+    
 def fdm_login(ipaddr,username,password,version):
     '''
     This is the normal login which will give you a ~30 minute session with no refresh.  
@@ -92,10 +114,11 @@ if __name__ == "__main__":
     print()     
     print ('==========================================================================================')
     print()
-    x=input("Let's check it. Type Enter")
     hostname = fdm_get_hostname(FDM_IP_ADDR,token,FDM_VERSION)
     print ('JSON HOSTNAME IS =')
     print(json.dumps(hostname,indent=4,sort_keys=True))    
     print()
+    hostname = fdm_get_api_versions(FDM_IP_ADDR,token)  
+    fdm_get_api_versions
     print(green('  ===>  ALL GOOD !',bold=True))
     print()
