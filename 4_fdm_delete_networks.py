@@ -8,6 +8,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from crayons import blue, green, white, red, yellow,magenta, cyan
 
+system_network_object=["IPv4-Private-All-RFC1918","IPv4-Private-10.0.0.0-8","IPv4-Private-172.16.0.0-12","IPv4-Private-192.168.0.0-16","any-ipv4","any-ipv6"]
+
 # Second let's define some global variables
 profile_filename="profile_ftd.yml"    
 new_auth_token=['none']#as global variable in order to make it easily updatable 
@@ -58,59 +60,63 @@ def delete_network_from_csv(host,token,file,version,username,password):
     }
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
+        nofirstline=0        
         for row in entries:
-            print(row[0]+' : '+row[5])
-            try:
-                if row[4]=='networkobjectgroup':
-                    request = requests.delete("https://{}:{}/api/fdm/v{}/object/networkgroups/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)    
-                    status_code = request.status_code
-                    if status_code == 401: # Token is invalid !
-                        print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-                        # We need username and password     for asking for a new authentication token            
-                        auth_token = fdm_login(host,username,password,version)
-                        # and then we can send again the REST CALL
-                        headers = {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization":"Bearer {}".format(auth_token)
-                        }                
-                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/networkgroups/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)
+            if nofirstline: 
+                print(row[0]+' : '+row[5])
+                try:
+                    if row[4]=='networkobjectgroup' and row[0] not in system_network_object:
+                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/networkgroups/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)    
                         status_code = request.status_code
-                    if status_code == 204:
-                        print (green("Delete was successful...",bold=True))
-                        #json_resp = json.loads(resp)
-                        #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-                    else :
-                        resp = request.text
-                        request.raise_for_status()
-                        print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                    
-                    print("Network Object Groups Deleted")
-                else:
-                    request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)        
-                    status_code = request.status_code
-                    if status_code == 401: # Token is invalid !
-                        print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-                        # We need username and password     for asking for a new authentication token            
-                        auth_token = fdm_login(host,username,password,version)
-                        # and then we can send again the REST CALL
-                        headers = {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization":"Bearer {}".format(auth_token)
-                        }                
-                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)
-                        status_code = request.status_code                    
-                    if status_code == 204:
-                        print (green("Delete was successful...",bold=True))
-                        #json_resp = json.loads(resp)
-                        #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-                    else :
-                        resp = request.text
-                        request.raise_for_status()
-                        print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                    
-                    print("Network Objects Deleted")
-            except:
-                raise
+                        if status_code == 401: # Token is invalid !
+                            print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+                            # We need username and password     for asking for a new authentication token            
+                            auth_token = fdm_login(host,username,password,version)
+                            # and then we can send again the REST CALL
+                            headers = {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization":"Bearer {}".format(auth_token)
+                            }                
+                            request = requests.delete("https://{}:{}/api/fdm/v{}/object/networkgroups/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)
+                            status_code = request.status_code
+                        if status_code == 204:
+                            print (green("Delete was successful...",bold=True))
+                            #json_resp = json.loads(resp)
+                            #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+                        else :
+                            resp = request.text
+                            request.raise_for_status()
+                            print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                    
+                        print("Network Object Groups Deleted")
+                    elif row[0] not in system_network_object:
+                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)        
+                        status_code = request.status_code
+                        if status_code == 401: # Token is invalid !
+                            print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+                            # We need username and password     for asking for a new authentication token            
+                            auth_token = fdm_login(host,username,password,version)
+                            # and then we can send again the REST CALL
+                            headers = {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization":"Bearer {}".format(auth_token)
+                            }                
+                            request = requests.delete("https://{}:{}/api/fdm/v{}/object/networks/{}".format(host, FDM_PORT,version,row[5]), headers=headers, verify=False)
+                            status_code = request.status_code                    
+                        if status_code == 204:
+                            print (green("Delete was successful...",bold=True))
+                            #json_resp = json.loads(resp)
+                            #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+                        else :
+                            resp = request.text
+                            request.raise_for_status()
+                            print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                    
+                        print("Network Objects Deleted")
+                except:
+                    raise
+            else:
+                nofirstline=1                     
     return (1)        
 
 if __name__ == "__main__":

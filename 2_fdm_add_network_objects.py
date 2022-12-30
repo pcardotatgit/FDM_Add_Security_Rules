@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -237,46 +237,50 @@ def read_csv(file):
     objects_details=[]
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
+        nofirstline=0
         for row in entries:
-            if row[0] not in existing_name_list:            
-                row[1]=row[1].lower()
-                if row[1]=='host':
-                    payload = {
-                        "name":row[0],
-                        "description":row[3],
-                        "subType":"HOST",
-                        "value":row[2],
-                        "type":"networkobject"
-                    }
-                elif row[1]=='fqdn':
-                    payload = {
-                        "name":row[0],
-                        "description":row[3],
-                        "subType":"FQDN",
-                        "value":row[2],
-                        "type":"networkobject"
-                    }                    
-                elif row[1]=='subnet':
-                    new_adress=convert_mask(row[2])
-                    payload = {
-                        "name":row[0],
-                        "description":row[3],
-                        "subType":"NETWORK",
-                        "value":new_adress,
-                        "type":"networkobject"
-                    }
-                else:
-                    payload = {
-                        "name":row[0],
-                        "description":row[3],
-                        "subType":"RANGE",
-                        "value":row[2],
-                        "type":"networkobject"
-                    }                
-                objects_details.append(payload)
-                print(green("Adding => Object [{}] ".format(row[0]),bold=True))
-            else:    
-                print(red("Read CSV => Object [  {}   ] already exists in FTD. We dont add it ".format(row[0]),bold=True))                
+            if nofirstline:
+                if row[0] not in existing_name_list:            
+                    row[1]=row[1].lower()
+                    if row[1]=='host':
+                        payload = {
+                            "name":row[0],
+                            "description":row[3],
+                            "subType":"HOST",
+                            "value":row[2],
+                            "type":"networkobject"
+                        }
+                    elif row[1]=='fqdn':
+                        payload = {
+                            "name":row[0],
+                            "description":row[3],
+                            "subType":"FQDN",
+                            "value":row[2],
+                            "type":"networkobject"
+                        }                    
+                    elif row[1]=='subnet':
+                        new_adress=convert_mask(row[2])
+                        payload = {
+                            "name":row[0],
+                            "description":row[3],
+                            "subType":"NETWORK",
+                            "value":new_adress,
+                            "type":"networkobject"
+                        }
+                    else:
+                        payload = {
+                            "name":row[0],
+                            "description":row[3],
+                            "subType":"RANGE",
+                            "value":row[2],
+                            "type":"networkobject"
+                        }                
+                    objects_details.append(payload)
+                    print(green("Adding => Object [{}] ".format(row[0]),bold=True))
+                else:    
+                    print(red("Read CSV => Object [  {}   ] already exists in FTD. We dont add it ".format(row[0]),bold=True))  
+            else:
+                nofirstline=1                    
     return (objects_details)
     
 if __name__ == "__main__":

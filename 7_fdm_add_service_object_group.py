@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -292,24 +292,28 @@ def read_csv(file,token,version,username,password):
     objects_details=[]
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
+        nofirstline=0
         for row in entries:
-            row[1]=row[1].lower()
-            payload = {}
-            payload.update({"name":row[0]})
-            payload.update({"description":row[3]})
-            payload.update({"isSystemDefined": "false"})
-            objets=[]    
-            liste_objets=[]
-            liste_objets=row[2].split(',')
-            for objet in liste_objets:        
-                the_objet={}
-                the_objet.update({"name": objet})
-                the_type=types.get(objet)
-                the_objet.update({"type":the_type})
-                objets.append(the_objet)
-            payload.update({"objects": objets})
-            payload.update({"type": "portobjectgroup"})            
-            objects_details.append(payload)
+            if nofirstline:        
+                row[1]=row[1].lower()
+                payload = {}
+                payload.update({"name":row[0]})
+                payload.update({"description":row[3]})
+                payload.update({"isSystemDefined": "false"})
+                objets=[]    
+                liste_objets=[]
+                liste_objets=row[2].split(',')
+                for objet in liste_objets:        
+                    the_objet={}
+                    the_objet.update({"name": objet})
+                    the_type=types.get(objet)
+                    the_objet.update({"type":the_type})
+                    objets.append(the_objet)
+                payload.update({"objects": objets})
+                payload.update({"type": "portobjectgroup"})            
+                objects_details.append(payload)
+            else:
+                nofirstline=1             
     return (objects_details)
     
 if __name__ == "__main__":

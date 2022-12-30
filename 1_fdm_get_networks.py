@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -117,7 +117,8 @@ def get_networks():
         Save result into a resulting CSV file
     '''
     # Let's Create and Open a resulting file into which we will store all network objects and their details
-    fa = open("./temp/network_objects.txt","w")   
+    fa = open("./temp/network_objects.txt","w") 
+    fa.write("name;subType;value;description\n")
     # List Network Object Groups First
     api_path="/object/networkgroups"
     # We read the network object list thanks to a loop which reads 1000 objects at each rounds.

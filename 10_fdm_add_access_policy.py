@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -293,37 +293,41 @@ def read_csv(file,networks:dict,ports:dict):
     object_details=[]
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
+        nofirstline=0
         #print(tcpports)
         for row in entries:
-            #print ( row[1]+ ' -> ' + row[2]+ ' -> ' + row[3]+ ' to ' + row[4]+ ' -> ' + row[5]+ ' -> ' + row[6])    
-            payload = {}
-            payload.update({"name": row[1]})
-            payload.update({"description": row[7]})
-            payload.update({"ruleAction": row[2]})
-            temp=networks.get(row[3])
-            param_list=temp.split('/')
-            source_dict=[{
-                  "id":param_list[0],
-                  "type":param_list[1]                           
-            }]
-            payload.update({"sourceNetworks": source_dict})  
-            temp=networks.get(row[4])
-            param_list=temp.split('/')
-            destination_dict=[{
-                  "id":param_list[0],
-                  "type":param_list[1]                           
-            }]
-            payload.update({"destinationNetworks": destination_dict})  
-            
-            temp=ports.get(row[6])
-            param_list=temp.split('/')
-            destination_port_dict=[{
-                  "id":param_list[0],
-                  "type":param_list[1]                           
-            }]         
-            payload.update({"destinationPorts": destination_port_dict})
-            payload.update({"type": "accessrule"})            
-            object_details.append(payload)        
+            if nofirstline:        
+                #print ( row[1]+ ' -> ' + row[2]+ ' -> ' + row[3]+ ' to ' + row[4]+ ' -> ' + row[5]+ ' -> ' + row[6])    
+                payload = {}
+                payload.update({"name": row[1]})
+                payload.update({"description": row[7]})
+                payload.update({"ruleAction": row[2]})
+                temp=networks.get(row[3])
+                param_list=temp.split('/')
+                source_dict=[{
+                      "id":param_list[0],
+                      "type":param_list[1]                           
+                }]
+                payload.update({"sourceNetworks": source_dict})  
+                temp=networks.get(row[4])
+                param_list=temp.split('/')
+                destination_dict=[{
+                      "id":param_list[0],
+                      "type":param_list[1]                           
+                }]
+                payload.update({"destinationNetworks": destination_dict})  
+                
+                temp=ports.get(row[6])
+                param_list=temp.split('/')
+                destination_port_dict=[{
+                      "id":param_list[0],
+                      "type":param_list[1]                           
+                }]         
+                payload.update({"destinationPorts": destination_port_dict})
+                payload.update({"type": "accessrule"})            
+                object_details.append(payload)  
+            else:
+                nofirstline=1                  
     return (object_details)
     
 if __name__ == "__main__":

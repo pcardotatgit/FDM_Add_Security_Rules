@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -286,29 +286,33 @@ def read_csv(file):
     objects_details=[]
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
-        for row in entries:  
-            if row[0] not in existing_name_list:
-                row[2]=row[2].lower()
-                if row[2]=='tcp':
-                    payload = {
-                        "name":row[0],
-                        "description":row[4],
-                        "port":row[3],
-                        "type": "tcpportobject",
-                        "protocol":"tcp"
-                    }        
-                else:
-                    payload = {
-                        "name":row[0],
-                        "description":row[4],
-                        "port":row[3],
-                        "type":"udpportobject",
-                        "protocol":"udp"                    
-                    }            
-                objects_details.append(payload)
-                print(green("Adding => Object [{}] ".format(row[0]),bold=True))
-            else:    
-                print(red("Read CSV => Object [  {}   ] already exists in FMC we dont add it ".format(row[0]),bold=True))                    
+        nofirstline=0
+        for row in entries: 
+            if nofirstline:
+                if row[0] not in existing_name_list:
+                    row[2]=row[2].lower()
+                    if row[2]=='tcp':
+                        payload = {
+                            "name":row[0],
+                            "description":row[4],
+                            "port":row[3],
+                            "type": "tcpportobject",
+                            "protocol":"tcp"
+                        }        
+                    else:
+                        payload = {
+                            "name":row[0],
+                            "description":row[4],
+                            "port":row[3],
+                            "type":"udpportobject",
+                            "protocol":"udp"                    
+                        }            
+                    objects_details.append(payload)
+                    print(green("Adding => Object [{}] ".format(row[0]),bold=True))
+                else:    
+                    print(red("Read CSV => Object [  {}   ] already exists in FMC we dont add it ".format(row[0]),bold=True)) 
+            else:
+                nofirstline=1                     
     return (objects_details)
     
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2020 Cisco and/or its affiliates.
+Copyright (c) 2022 Cisco and/or its affiliates.
 
 This software is licensed to you under the terms of the Cisco Sample
 Code License, Version 1.1 (the "License"). You may obtain a copy of the
@@ -83,87 +83,91 @@ def delete_service_from_csv(host,token,file,version,username,password):
     }
     with open (file) as csvfile:
         entries = csv.reader(csvfile, delimiter=';')
+        nofirstline=0
         for row in entries:
-            print(row[0]+' : '+row[4]+' : '+str(row[3])+' : '+str(row[5]))
-            try:
-                if row[5]=='False' and row[3]=='tcpportobject':
-                    request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
-                    status_code = request.status_code
-                    if status_code == 401: # Token is invalid !
-                        print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-                        # We need username and password     for asking for a new authentication token            
-                        auth_token = fdm_login(host,username,password,version)
-                        # and then we can send again the REST CALL
-                        headers = {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization":"Bearer {}".format(auth_token)
-                        }             
+            if nofirstline:            
+            #print(row[0]+' : '+row[4]+' : '+str(row[3])+' : '+str(row[5]))
+                try:
+                    if row[5]=='False' and row[3]=='tcpportobject':
                         request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
                         status_code = request.status_code
-                    resp = request.text
-                    if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
-                        print (green("Delete was successful...",bold=True))
-                        #json_resp = json.loads(resp)
-                        #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-                    else :
-                        request.raise_for_status()
-                        print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))
-                    
-                    print("Single TCP Service Deleted")
-                elif row[5]=='False' and row[3]=='udpportobject':
-                    request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)       
-                    status_code = request.status_code
-                    if status_code == 401: # Token is invalid !
-                        print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-                        # We need username and password     for asking for a new authentication token            
-                        auth_token = fdm_login(host,username,password,version)
-                        # and then we can send again the REST CALL
-                        headers = {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization":"Bearer {}".format(auth_token)
-                        }         
-                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+                        if status_code == 401: # Token is invalid !
+                            print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+                            # We need username and password     for asking for a new authentication token            
+                            auth_token = fdm_login(host,username,password,version)
+                            # and then we can send again the REST CALL
+                            headers = {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization":"Bearer {}".format(auth_token)
+                            }             
+                            request = requests.delete("https://{}:{}/api/fdm/v{}/object/tcpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+                            status_code = request.status_code
+                        resp = request.text
+                        if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+                            print (green("Delete was successful...",bold=True))
+                            #json_resp = json.loads(resp)
+                            #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+                        else :
+                            request.raise_for_status()
+                            print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))
+                        
+                        print("Single TCP Service Deleted")
+                    elif row[5]=='False' and row[3]=='udpportobject':
+                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)       
                         status_code = request.status_code
-                    resp = request.text
-                    if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
-                        print (green("Delete was successful...",bold=True))
-                        #json_resp = json.loads(resp)
-                        #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-                    else :
-                        request.raise_for_status()
-                        print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                                        
-                    print("Single UDP Service Deleted")
-                elif row[5]=='False' and row[3]=='portobjectgroup':
-                    request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)       
-                    status_code = request.status_code
-                    if status_code == 401: # Token is invalid !
-                        print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
-                        # We need username and password     for asking for a new authentication token            
-                        auth_token = fdm_login(host,username,password,version)
-                        # and then we can send again the REST CALL
-                        headers = {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization":"Bearer {}".format(auth_token)
-                        }             
-                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+                        if status_code == 401: # Token is invalid !
+                            print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+                            # We need username and password     for asking for a new authentication token            
+                            auth_token = fdm_login(host,username,password,version)
+                            # and then we can send again the REST CALL
+                            headers = {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization":"Bearer {}".format(auth_token)
+                            }         
+                            request = requests.delete("https://{}:{}/api/fdm/v{}/object/udpports/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+                            status_code = request.status_code
+                        resp = request.text
+                        if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+                            print (green("Delete was successful...",bold=True))
+                            #json_resp = json.loads(resp)
+                            #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+                        else :
+                            request.raise_for_status()
+                            print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                                        
+                        print("Single UDP Service Deleted")
+                    elif row[5]=='False' and row[3]=='portobjectgroup':
+                        request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)       
                         status_code = request.status_code
-                    resp = request.text
-                    if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
-                        print (green("Delete was successful...",bold=True))
-                        #json_resp = json.loads(resp)
-                        #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
-                    else :
-                        request.raise_for_status()
-                        print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                            
-                    print("Port Group Deleted")
-                else:
-                    print(red('Nothing to delete !',bold=True))                
-            except:
-                raise    
-            #time.sleep(0.5)
+                        if status_code == 401: # Token is invalid !
+                            print(red("Auth Token invalid, Let\'s ask for a new one",bold=True))
+                            # We need username and password     for asking for a new authentication token            
+                            auth_token = fdm_login(host,username,password,version)
+                            # and then we can send again the REST CALL
+                            headers = {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization":"Bearer {}".format(auth_token)
+                            }             
+                            request = requests.delete("https://{}:{}/api/fdm/v{}/object/portgroups/{}".format(host, FDM_PORT,version,row[4]), headers=headers, verify=False)
+                            status_code = request.status_code
+                        resp = request.text
+                        if status_code == 200 or status_code == 201 or status_code == 202 or status_code == 204:
+                            print (green("Delete was successful...",bold=True))
+                            #json_resp = json.loads(resp)
+                            #print(json.dumps(json_resp,sort_keys=True,indent=4, separators=(',', ': ')))
+                        else :
+                            request.raise_for_status()
+                            print (red("Error occurred in Delete --> "+resp+' Status Code = '+str(status_code)))                            
+                        print("Port Group Deleted")
+                    else:
+                        print(red('Nothing to delete !',bold=True))                
+                except:
+                    raise    
+                #time.sleep(0.5)
+            else:
+                nofirstline=1                  
     return (1)        
 
 
