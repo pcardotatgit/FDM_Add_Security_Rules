@@ -1,3 +1,4 @@
+name;subType;value;description
 NEW_HOST-100.38.56.12;host;100.38.56.12;small description;
 NEW_HOST-PATRICK_LAPTOP;host;172.15.118.26;small description;
 NEW_HOST-WEB_SERVER;host;172.215.18.167;small description;
