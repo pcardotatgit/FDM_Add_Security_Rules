@@ -65,5 +65,7 @@ So running **0_fdm_generate_token.py** is supposed to be the first operation to 
 - **10_fdm_add_access_policy.py**: Add new Access Policies to FTD device from the **./objects_csv_files/security_access_rules.csv**  file
 - **11_fdm_delete_access_policies.py**: Delete all access Policies from the **./temp/access_policies.txt** file
 - **100_fdm_deploy.py**: Deploy last changes to FTD device
+- **check_api_version.py** : Returns the api version to use for the devive. This API doesn't require any authentication. This script can be used to check the device connectivity.
+- **modify_network_group_objects_use_case.py** : This script gives an example of interface to delete or update the content of a network object group
 
 Every changes can be verified from FDM GUI

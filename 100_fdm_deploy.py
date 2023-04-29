@@ -16,7 +16,7 @@ writing, software distributed under the License is distributed on an "AS
 IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 or implied.
 
-This script	deploys last changes into the FDN device
+This script    deploys last changes into the FDN device
 '''
 import requests
 import json
@@ -32,7 +32,7 @@ def yaml_load(filename):
     yamlrawtext = fh.read()
     yamldata = yaml.load(yamlrawtext,Loader=yaml.FullLoader)
     return yamldata
-	
+    
 def fdm_login(host,username,password,version):
     '''
     This is the normal login which will give you a ~30 minute session with no refresh.  
@@ -64,40 +64,40 @@ def fdm_login(host,username,password,version):
         raise
 
 def deploy(host,token,version):
-	'''
-	This is a POST request to create a new network object in FDM.
-	'''
-	headers = {
-		"Content-Type": "application/json",
-		"Accept": "application/json",
-		"Authorization":"Bearer {}".format(token)
-	}
-	try:
+    '''
+    This is a POST request to create a new network object in FDM.
+    '''
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization":"Bearer {}".format(token)
+    }
+    try:
         api_url="https://{}:{}/api/fdm/v{}/operational/deploy".format(host, FDM_PORT,version)
-		request = requests.post(api_url,headers=headers, verify=False)
-		return request.json()
-	except:
-		raise
+        request = requests.post(api_url,headers=headers, verify=False)
+        return request.json()
+    except:
+        raise
 
 if __name__ == "__main__":
-	#  load FMC IP & credentials here
-	ftd_host = {}
-	ftd_host = yaml_load("profile_ftd.yml")	
-	pprint(ftd_host["devices"])	
-	#pprint(fmc_host["devices"][0]['ipaddr'])
-	FDM_USER = ftd_host["devices"][0]['username']
-	FDM_PASSWORD = ftd_host["devices"][0]['password']
-	FDM_HOST = ftd_host["devices"][0]['ipaddr']
-	FDM_PORT = ftd_host["devices"][0]['port']
-	FDM_VERSION = ftd_host["devices"][0]['version']
-	# get token from token.txt
-	fa = open("./temp/token.txt", "r")
-	token = fa.readline()
-	fa.close()
-	print()
-	print (" TOKEN :")
-	print(token)
-	print('======================================================================================================================================')	 
-	print("DEPLOYEMENT")
-	deploy(FDM_HOST,token,FDM_VERSION)
-    print(green("DONE !",bold=True))
+    #  load FMC IP & credentials here
+    ftd_host = {}
+    ftd_host = yaml_load("profile_ftd.yml")    
+    pprint(ftd_host["devices"])    
+    #pprint(fmc_host["devices"][0]['ipaddr'])
+    FDM_USER = ftd_host["devices"][0]['username']
+    FDM_PASSWORD = ftd_host["devices"][0]['password']
+    FDM_HOST = ftd_host["devices"][0]['ipaddr']
+    FDM_PORT = ftd_host["devices"][0]['port']
+    FDM_VERSION = ftd_host["devices"][0]['version']
+    # get token from token.txt
+    fa = open("./temp/token.txt", "r")
+    token = fa.readline()
+    fa.close()
+    print()
+    print (" TOKEN :")
+    print(token)
+    print('======================================================================================================================================')     
+    print("DEPLOYEMENT Triggered")
+    deploy(FDM_HOST,token,FDM_VERSION)
+    print(green("Command succesfully accepted by FDM device. Wait a few minutes and check task manager to see if it has been done",bold=True))
